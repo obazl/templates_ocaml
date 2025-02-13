@@ -1,0 +1,71 @@
+= {{name}}
+:toc: true
+
+A non-namespaced minimal working example using an external tokens
+file.  Demonstrates use of Menhir and:
+
+* link:https://github.com/obazl/obazl_menhir[menhir]
+* link:https://github.com/obazl/rules_ocaml[rules_ocaml]
+* link:https://github.com/obazl/tools_opam[tools_opam]
+
+== Getting started
+
+    cd {{name}}
+    bazel test //... --build_tests_only
+
+You'll see some messages the first time you build, while the extension configures a local opam switch; for example:
+
+     Fetching module extension @@tools_opam+//extensions:opam.bzl%opam; Building @tools_opam//extensions/config
+     Fetching ... @@tools_opam+//extensions:opam.bzl%opam; Creating local switch for compiler 5.3.0 at /path/to/obazl_hello 54s
+    Fetching module extension @@tools_opam+//extensions:opam.bzl%opam; Installing pkg ounit2 (0 of 1) 15s
+
+You can run the tests individually:
+
+    bazel test src/hello:test
+    bazel test src/goodbye:test
+
+NOTE: This is an alpha version. There is still some flakiness in some
+situations involving opam commands (like creating a switch) that I
+haven't worked out. If you see error messages, try running the build
+again. You may need to run `bazel clean --expunge`. Once your switch
+is properly configured (which you can do manually if you prefer), you
+should not see such errors.  If you do, please file an issue.
+
+The `tools_opam` module extension `opam` supports three different
+toolchain strategies, `local`, `global`, and `xdg`. See
+link:https://github.com/obazl/tools_opam[tools_opam] for more
+information and instructions on how to use them.
+
+== Exercising the OCaml compilers
+
+The standard OCaml distribution comes with four basic compilers
+(`+ocamlopt.opt`, `+ocamlc.byte+`, `+ocamlopt.byte`, and
+`+ocamlc.opt`) plus a profiling frontend (`+ocamlcp+`). Furthermore,
+the compilers may be configured in a variety of ways: with a
+`+debug-runtime+`, or the flambda optimizer, and so forth.
+
+The OBazl rules (`+rules_ocaml+`) support the four basic compilers out
+of the box. In this demo you can see how they are configured in
+link:.config/toolchains.bazelrc[./config/toolchains.bazelrc]. To select one, pass `--config=<compiler>` on the command line; e.g.
+
+    $ bazel build src/hello:test --config=ocamlc.byte
+
+WARNING: The implementation and syntax of this feature will change in
+the near future, but the concept will remain the same.
+
+By default, Bazel reads a variety of `+bazelrc+` files, such as
+`+$HOME/.bazelrc+` and `+<projroot>/.bazelrc+`. (See
+link:https://bazel.build/run/bazelrc[Write bazelrc configuration
+files] for more information.) This may induce a dependency on the
+local system, so to prepare a project for release you need to build
+and test everything without depending on such files. That is the
+purpose of such start-up options as `+--nohome_rc+`,
+`+--nosystem_rc+`, etc. (Run `$ bazel startup_options help` to see a
+list of all startup options.)
+
+As an example of one way to do this, see link:tools/release_build[tools/release_build] and link:tools/release_test[tools/release_test].
+
+Note that:
+
+* `+$ bazel test //...+` will build all targets and run all tests
+* `+$ bazel test //... --build_tests_only+` will run all tests but only build targets required by the tests
