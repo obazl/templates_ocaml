@@ -1,0 +1,31 @@
+load("@rules_ocaml//build:rules.bzl", "ocaml_module")
+load("@rules_ppx//build:rules.bzl", "ppx_executable")
+
+###############
+ppx_executable(
+    name       = "ppx.exe",
+    main       = ":Ppx_runner",  ## hand-rolled, see below
+    prologue   = ["@opam.ppx_show//lib"],
+    ppx_codeps = ["@opam.ppx_show//runtime/lib"],
+    visibility = ["//lib:__pkg__", "//test:__pkg__"]
+)
+
+###########
+ocaml_module(
+    name       = "Ppx_runner",
+    struct     = ":ppx_runner.ml",
+    visibility = ["//visibility:public"],
+    deps       = ["@opam.ppxlib//lib"],
+)
+
+########
+genrule(
+    name       = "gendriver",
+    outs       = ["ppx_runner.ml"],
+    cmd        = "\n".join([
+        "echo \"(* GENERATED FILE - DO NOT EDIT *)\" > \"$@\"",
+        ## either of the following will work:
+        "echo \"Ppxlib.Driver.standalone ()\" >> \"$@\"",
+        # "echo \"let () = Ppxlib.Driver.standalone ()\" >> \"$@\"",
+    ]),
+)

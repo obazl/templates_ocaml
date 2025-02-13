@@ -1,0 +1,36 @@
+module(
+    name                = "{{name}}",
+    version             = "0.1.0",
+    compatibility_level = 0,
+)
+
+## bcr:
+bazel_dep(name = "platforms",    version = "0.0.11")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_cc",     version = "0.1.1")
+
+## obazl:
+bazel_dep(name = "rules_ocaml",  version = "3.0.0.beta.1")
+bazel_dep(name = "tools_opam",   version = "1.0.0.beta.1")
+opam = use_extension("@tools_opam//extensions:opam.bzl", "opam")
+
+bazel_dep(name = "rules_menhir", version = "2024.07.15.beta.1",
+          repo_name="menhir")
+use_repo(opam, "opam.menhir", "opam.menhirLib")
+
+opam.deps(
+    toolchain = "xdg",  # | "local" | "global"
+    opam_version = "2.3.0", # ignored unless toolchain = "xdg"
+    ocaml_version = "5.3.0",
+    # pkgs = { }
+    # debug = 0, verbosity = 1, opam_verbosity = 0,
+)
+use_repo(opam, "opam.ocamlsdk")
+register_toolchains("@opam.ocamlsdk//toolchain/selectors/local:all")
+register_toolchains("@opam.ocamlsdk//toolchain/profiles:all")
+
+# dev mode opt-ins:
+opam_dev = use_extension("@tools_opam//extensions:opam.bzl",
+                         "opam", dev_dependency = True)
+opam_dev.deps(pkgs = {"ounit2": "2.2.7"})   # configure
+use_repo(opam_dev, "opam.ounit2")           # import

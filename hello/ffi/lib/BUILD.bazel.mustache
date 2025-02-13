@@ -1,0 +1,23 @@
+load("@rules_cc//cc:defs.bzl",        "cc_library")
+load("@rules_ocaml//build:rules.bzl", "ocaml_module")
+
+ocaml_module(
+    name       = "Alpha",
+    struct     = "alpha.ml",
+    deps       = [":alphastub"],
+    visibility = ["//bin:__pkg__"],
+)
+
+cc_library(
+    name       = "alphastub",
+    srcs       = ["alpha_adapter.c"],
+    copts      = ["-Ilib/cclibs"],
+    linkstatic = True,
+    linkopts   = ["-lalpha"],
+    deps       = [
+        "//lib/cclibs:alpha",
+        "@opam.ocamlsdk//ffi/lib",
+    ],
+)
+
+

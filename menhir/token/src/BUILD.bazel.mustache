@@ -1,0 +1,109 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_library",
+     "ocamllex",
+     "ocaml_module",
+     "ocaml_test",
+)
+
+load("@menhir//build/rules:menhir.bzl", "menhir")
+
+###########
+ocaml_test(
+    name     = "test",
+    main     = ":ParserTest",
+    visibility = ["//visibility:public"],
+    timeout  = "short"
+)
+
+#############
+ocaml_module(
+    name          = "ParserTest",
+    struct        = "parserTest.ml",
+    deps          = [
+        ":libMwe",
+        "@opam.ounit2//lib"
+    ]
+)
+
+##############
+ocaml_library(
+    name     = "libMwe",
+    manifest = [
+        ":Ast",
+        ":Lexer",
+        ":Parser",
+        ":ParserInterface"
+    ],
+)
+
+ocaml_module(
+    name          = "Ast",
+    struct        = "ast.ml",
+)
+
+# Since we're using an --external-tokens defn of token,
+# the lexer must depend on the same token module:
+ocaml_module(
+    name          = "Lexer",
+    struct        = "lexer.ml",
+    # open = [":Token"], # or put 'open Token' in lexer.mll
+    deps          = [
+        ":Parser" # :Token included in depgraph by transitivity
+    ],
+)
+
+ocaml_module(
+    name          = "Parser",
+    struct        = "parser.ml",
+    sig           = "parser.mli",
+    deps          = [
+        ":Ast",
+        ":Token",
+        ":menhir_Parser"
+    ],
+)
+
+ocaml_module(
+    name          = "ParserInterface",
+    struct        = "parserInterface.ml",
+    deps          = [
+        ":Lexer",
+        ":Parser"
+    ],
+)
+
+ocaml_module(
+    name          = "Token",
+    struct        = "token.ml"
+)
+
+##########
+ocamllex(
+    name  = "lex_Lexer",
+    src   = "lexer.mll",
+    out   = "lexer.ml",
+)
+
+#######
+menhir(
+    name  = "menhir_Parser",
+    outs  = ["parser.ml", "parser.mli"],
+    grammars = ["parser.mly"],
+    deps  = [":Ast", ":Token"],
+    codeps = ["@opam.menhirLib//lib"],
+    # base = "Parser",
+    tokens_unused = [ # suppress unused symbol warnings
+        "TUnknown",
+        "TCommentLineDirective",
+        "TComment"
+    ],
+    token = ":Token", # --external-tokens
+    flags = [
+        "--table",
+        "--explain",
+    ]
+)

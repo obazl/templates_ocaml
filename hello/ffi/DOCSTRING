@@ -1,0 +1,2 @@
+Simple example demonstrating direct use of the OCaml ffi
+(without ctypes).

@@ -1,0 +1,19 @@
+load(
+    "@rules_ocaml//build:rules.bzl",
+    "ocaml_module", "ocaml_signature"
+)
+
+ocaml_signature(
+    name   = "Hello_cmi",
+    src    = "hello.mli",
+)
+
+ocaml_module(
+    name = "Hello",
+    struct = "hello.ml",
+    sig    = ":Hello_cmi",
+    visibility = [
+        "//bin:__pkg__",
+        "//test:__pkg__"
+    ],
+)

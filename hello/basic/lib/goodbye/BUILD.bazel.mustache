@@ -1,0 +1,13 @@
+load(
+    "@rules_ocaml//build:rules.bzl",
+    "ocaml_module",
+)
+
+ocaml_module(
+    name = "Goodbye",
+    struct = "goodbye.ml",
+    visibility = [
+        "//bin:__pkg__",
+        "//test:__pkg__"
+    ],
+)
