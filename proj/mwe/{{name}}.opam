@@ -1,0 +1,18 @@
+opam-version: "{{opam_version}}"
+maintainer: "{{maintainer}} {{maintainer_email}}"
+authors: [
+{{#authors}}
+  "{{author}}",
+{{/authors}}
+]
+homepage: "{{homepage}}"
+dev-repo: "{{dev_repo}}"
+bug-reports: "{{bug_reports}}"
+doc: "{{doc_url}}"
+license: "{{license}}"
+depends: [
+]
+install: [
+]
+synopsis: "{{synopsis}}"
+description: """{{description}}"""
