@@ -1,0 +1,14 @@
+exports_files(glob(["**"]))
+
+filegroup(
+    name = "templates_ocaml",
+    data = glob([
+        "lib/**/**",
+        "menhir/**/**",
+        "pkg/**/**",
+        "ppx/**/**",
+        "proj/**/**"
+    ]),
+    visibility = ["//visibility:public"]
+)
+
