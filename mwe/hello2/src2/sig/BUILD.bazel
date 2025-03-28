@@ -1,0 +1,7 @@
+load("@rules_ocaml//build:rules.bzl", "ocaml_signature")
+
+ocaml_signature(
+    name = "Hello_cmi",
+    src  = "hello.mli",
+    visibility = ["//src/struct:__pkg__"],
+)

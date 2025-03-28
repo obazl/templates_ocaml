@@ -6,6 +6,7 @@ filegroup(
         "ffi/**/**",
         "lib/**/**",
         "menhir/**/**",
+        "mwe/**/**",
         "pkg/**/**",
         "ppx/**/**",
         "proj/**/**"
