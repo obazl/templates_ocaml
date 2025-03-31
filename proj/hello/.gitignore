@@ -1,9 +1,0 @@
-.bazelignore
-.bazeliskrc
-.bazelversion
-bazel-*
-.bazel
-_opam*
-
-# Merlin configuring file for Vim and Emacs
-.merlin
