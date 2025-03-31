@@ -1,0 +1,10 @@
+load("@rules_ctypes//build/rules:ctypes.bzl", "ctypes_module")
+
+##############
+ctypes_module(
+    name = "date",
+    api_name = "date_stubs",
+    functors = {"date_types.ml": "DateTypes",
+                "date_functions.ml": "DateFunctions"},
+    cchdrs   = ["<time.h>"],
+)

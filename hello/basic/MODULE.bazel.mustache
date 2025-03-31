@@ -1,0 +1,56 @@
+module(
+    name = "{{name}}",
+    version = "0.1.0",
+    compatibility_level = 0,
+)
+
+bazel_dep(name = "rules_ocaml", version = "3.0.0.beta.1")
+bazel_dep(name = "tools_opam",  version = "1.0.0.beta.1")
+
+opam = use_extension("@tools_opam//extensions:opam.bzl", "opam")
+# required to import opam.ocamlsdk and toolchains
+opam.deps(
+    # toolchain = "xdg", # (default)
+    ## opam_version is ignored unless toolchain = "xdg"
+    # opam_version = "2.2.1", # default: "2.3.0"
+    # toolchain = "global",
+    # toolchain = "local",
+    # ocaml_version = "5.2.0", # default: "5.3.0"
+    # debug = 2,
+    # verbosity = 2,
+    # opam_verbosity = 2,
+    # pkgs = {
+    #  no opam deps for this project
+    #  except ounit2, which is a dev-only dep; see below
+    # }
+)
+
+# always required:
+use_repo(opam, "opam.ocamlsdk")
+# required in root module:
+register_toolchains("@opam.ocamlsdk//toolchain/selectors/local:all")
+register_toolchains("@opam.ocamlsdk//toolchain/profiles:all")
+
+# dev mode opt-ins:
+opam_dev = use_extension("@tools_opam//extensions:opam.bzl",
+                         "opam", dev_dependency = True)
+opam_dev.deps(pkgs = {"ounit2": "2.2.7"})   # configure
+use_repo(opam_dev, "opam.ounit2")           # import
+
+# enable 'bazel run @opam'
+opam_dev.opam()
+use_repo(opam_dev, "opam")
+
+# enable 'bazel run @ocaml'
+opam_dev.ocaml()
+use_repo(opam_dev, "ocaml")
+
+# enable 'bazel run @utop'
+opam_dev.utop(version = "2.15.0-1",
+              # ocamlinit is optional:
+              ocamlinit = ".config/ocamlinit")
+use_repo(opam_dev, utop="opam.utop")
+
+# enable 'bazel run @dbg --@dbg//pgm=//bin:greetings'
+opam_dev.dbg()
+use_repo(opam_dev, "dbg")

@@ -5,30 +5,50 @@ module(
 )
 
 ## bcr:
-bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "platforms",    version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "rules_cc", version = "0.0.17")
+bazel_dep(name = "rules_cc",     version = "0.1.1")
 
 ## obazl:
-bazel_dep(name = "rules_ocaml", version = "5.0.0")
-bazel_dep(name = "tools_opam", version = "1.0.0")
+bazel_dep(name = "rules_ocaml",  version = "3.0.0.beta.1")
+bazel_dep(name = "tools_opam",   version = "1.0.0.beta.1")
 opam = use_extension("@tools_opam//extensions:opam.bzl", "opam")
 
-bazel_dep(name = "obazl_menhir", repo_name="menhir")
-git_override(module_name = "obazl_menhir",
-             branch  = "2024.07.15.beta",
-             remote = "https://github.com/obazl/obazl_menhir.git")
+bazel_dep(name = "rules_menhir", version = "2024.07.15.beta.1",
+          repo_name="menhir")
 use_repo(opam, "opam.menhir", "opam.menhirLib")
 
 opam.deps(
     toolchain = "xdg",  # | "local" | "global"
     opam_version = "2.3.0", # ignored unless toolchain = "xdg"
     ocaml_version = "5.3.0",
-    pkgs = {"ounit2": "2.2.7"}
+    # pkgs = { },
     # debug = 0, verbosity = 1, opam_verbosity = 0,
 )
 use_repo(opam, "opam.ocamlsdk")
 register_toolchains("@opam.ocamlsdk//toolchain/selectors/local:all")
 register_toolchains("@opam.ocamlsdk//toolchain/profiles:all")
 
-use_repo(opam, "opam.ounit2")
+# dev mode opt-ins:
+opam_dev = use_extension("@tools_opam//extensions:opam.bzl",
+                         "opam", dev_dependency = True)
+opam_dev.deps(pkgs = {"ounit2": "2.2.7"})   # configure
+use_repo(opam_dev, "opam.ounit2")           # import
+
+# enable 'bazel run @opam'
+opam_dev.opam()
+use_repo(opam_dev, "opam")
+
+# enable 'bazel run @ocaml'
+opam_dev.ocaml()
+use_repo(opam_dev, "ocaml")
+
+# enable 'bazel run @utop'
+opam_dev.utop(version = "2.15.0-1",
+              # ocamlinit is optional:
+              ocamlinit = ".config/ocamlinit")
+use_repo(opam_dev, utop="opam.utop")
+
+# enable 'bazel run @dbg --@dbg//pgm=//bin:greetings'
+opam_dev.dbg()
+use_repo(opam_dev, "dbg")

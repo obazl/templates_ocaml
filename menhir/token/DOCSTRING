@@ -1,1 +1,1 @@
-Docstring for OCaml template menhir/mwe
+Example using menhir with external token module.

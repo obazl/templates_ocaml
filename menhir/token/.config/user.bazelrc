@@ -3,5 +3,3 @@
 ## during development:
 # common --lockfile_mode=off
 # common --repository_cache=
-try-import %workspace%/.config/overrides.bazelrc
-

@@ -1,0 +1,20 @@
+load("@rules_ocaml//build:rules.bzl", "ocaml_module", "ocaml_test")
+
+###########
+ocaml_test(
+    name = "test",
+    main = "Test",
+    timeout = "short",
+    tags = ["v5.1"]
+)
+
+###########
+ocaml_module(
+    name = "Test",
+    ppx  = "//ppx:ppx.exe",
+    struct = "test.ml",
+    deps = [
+        "//lib:Show",
+        "@opam.ounit2//lib",
+    ],
+)

@@ -1,0 +1,32 @@
+try-import %workspace%/.config/registries.bazelrc
+## do not remove these two lines:
+common --registry=https://raw.githubusercontent.com/obazl/registry/main/
+common --registry=https://bcr.bazel.build
+
+common --flag_alias=tc=@rules_ocaml//toolchain
+common --flag_alias=pgm=@dbg//pgm
+
+common:showpp --subcommands=pretty_print
+test:showpp  --test_output=all
+
+# run ocamlc/ocamlopt -i to generate interface
+build:gensig --output_groups=gensig
+
+# run ocamlobjinfo
+build:modinfo --aspects @tools_opam//aspects:ocamlobjinfo.bzl%modinfo
+build:modinfo --output_groups=objinfo
+
+build:siginfo --aspects @tools_opam//aspects:ocamlobjinfo.bzl%siginfo
+build:siginfo --output_groups=objinfo
+
+build:archinfo --aspects @tools_opam//aspects:ocamlobjinfo.bzl%archinfo
+build:archinfo --output_groups=objinfo
+
+# run ocamlcmt
+build:cmtinfo --aspects @tools_opam//aspects:ocamlcmt.bzl%cmt
+build:cmtinfo --output_groups=cmtinfo
+build:cmtiinfo --aspects @tools_opam//aspects:ocamlcmt.bzl%cmti
+build:cmtiinfo --output_groups=cmtinfo
+
+
+try-import %workspace%/.config/user.bazelrc

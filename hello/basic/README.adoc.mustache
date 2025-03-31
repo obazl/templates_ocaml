@@ -1,0 +1,181 @@
+= {{name}}
+:toc: true
+
+A Minimal Working Example demonstrating the use of
+
+* link:https://github.com/obazl/rules_ocaml[rules_ocaml]
+* link:https://github.com/obazl/tools_opam[tools_opam]
+
+== Getting started
+
+    bazel test test
+
+You'll see some messages the first time you build, while the extension configures a local opam switch; for example:
+
+     Fetching module extension @@tools_opam+//extensions:opam.bzl%opam; Building @tools_opam//extensions/config
+     Fetching ... @@tools_opam+//extensions:opam.bzl%opam; Creating local switch for compiler 5.3.0 at /path/to/obazl_hello 54s
+    Fetching module extension @@tools_opam+//extensions:opam.bzl%opam; Installing pkg ounit2 (0 of 1) 15s
+
+== Basic tasks
+
+Make any of the following commands verbose by passing
+`--config=showpp`. See link:.bazelrc[.bazelrc] for the definition of
+`showpp`.
+
+Run the executable (built with `ocamlopt` by default):
+
+----
+$ bazel run bin:greetings
+----
+
+Run a bytecode executable built with `ocamlc`:
+
+----
+$ bazel run bin:greetings --tc=ocamlc
+----
+
+There are four compilers that can be selected with `--tc`: the default `ocamlopt`
+(=`ocamlopt.opt`), `ocamlc` (=`ocamlc.opt`), `ocamlc.byte`, and `ocamlopt.byte`.
+
+Build and run an optimized version:
+
+----
+$ bazel run bin:greetings --tc=ocamlc -c opt
+----
+
+Build one module:
+
+----
+$ bazel build lib/hello:Hello
+----
+
+OBazl convention is to use capitalized names for module and signature targets.
+
+Build all targets:
+
+----
+$ bazel build //...
+----
+
+See https://bazel.build/run/build#specifying-build-targets[Building multiple targets,window=_blank] for the meaning of `+//...+`.
+
+
+Run the test suite:
+
+----
+$ bazel test test
+----
+
+Run the debugger:
+
+----
+$ bazel run @dbg --@dbg//pgm=bin:greetings
+----
+
+== Using SDK tools
+
+The “configuration groups” used in `--config=<grp>` below are defined in link:.bazelrc[.bazelrc].
+
+Generate interface code for a `.ml` file (i.e. run `ocamlc/ocamlopt -i`):
+
+----
+$ bazel build lib/goodbye:Goodbye --config=gensig
+INFO: Analyzed target //lib/goodbye:Goodbye (0 packages loaded, 0 targets configured).
+INFO: From sys>sys gensig ocaml_module: //lib/goodbye:Goodbye:
+val msg : string
+module MyModule : sig val inc : int -> int end
+INFO: Found 1 target...
+Target //lib/goodbye:Goodbye up-to-date:
+  bazel-bin/lib/goodbye/Goodbye.mli
+
+$ cat bazel-bin/lib/goodbye/Goodbye.mli
+val msg : string
+module MyModule : sig val inc : int -> int end
+----
+
+Run `ocamlobjinfo` on a `.cmo/.cmx` file:
+
+----
+$ bazel build lib/hello:Hello --config=modinfo
+----
+
+Run `ocamlobjinfo` on a `.cmi` file:
+
+----
+$ bazel build lib/hello:Hello --config=siginfo
+$ bazel build lib/hello:Hello_cmi --config=siginfo
+$ bazel build lib/goodbye:Goodbye --config=siginfo
+----
+
+In this example, there is no `goodbye.mli` file, so the `.cmi` output
+of compiling `goodbye.ml` is used.
+
+Run `ocamlcmt` on `.cmt/.cmti` files:
+
+----
+$ bazel build lib/hello:Hello --config=cmtinfo
+----
+
+Generation of `.cmt/cmti` files (by passing `-bin-annot`) is enabled by default.
+
+== Exploring
+
+Show the command line for a build action without actually building:
+
+----
+$ bazel aquery bin:greetings
+$ bazel aquery lib/hello:Hello
+$ bazel aquery lib/hello:Hello --tc=ocamlc.byte
+----
+
+List all `ocaml_module` targets:
+
+----
+$ bazel query 'kind("ocaml_module", deps(//...))'
+//bin:Main
+//lib/goodbye:Goodbye
+//lib/hello:Hello
+//test:Test
+----
+
+List all `ocaml_signature` targets:
+
+----
+$ bazel query 'kind("ocaml_signature", deps(//...))'
+//lib/hello:Hello_cmi
+----
+
+List all `ocaml_module` targets that have a `sig` attribute:
+
+----
+$ bazel query 'attr(sig, ".*", kind("ocaml_module", deps(//...)))'
+//lib/hello:Hello
+----
+
+List all `ocaml_module` targets without a `sig` attribute; i.e. `.ml` files without a corresponding `.mli` file:
+
+----
+$ bazel query 'kind("ocaml_module", deps(//...)) except attr(sig, ".*", kind("ocaml_module", deps(//...)))'
+//bin:Main
+//lib/goodbye:Goodbye
+//test:Test
+----
+
+== bazelrc files
+
+By default, Bazel reads a variety of `+bazelrc+` files, such as
+`+$HOME/.bazelrc+` and `+<projroot>/.bazelrc+`. (See
+link:https://bazel.build/run/bazelrc[Write bazelrc configuration
+files] for more information.) This may induce a dependency on the
+local system, so to prepare a project for release you need to build
+and test everything without depending on such files. That is the
+purpose of such start-up options as `+--nohome_rc+`,
+`+--nosystem_rc+`, etc. (Run `$ bazel startup_options help` to see a
+list of all startup options.)
+
+As an example of one way to do this, see link:tools/release_build[tools/release_build] and link:tools/release_test[tools/release_test].
+
+Note that:
+
+* `+$ bazel test //...+` will build all targets and run all tests
+* `+$ bazel test //... --build_tests_only+` will run all tests but only build targets required by the tests

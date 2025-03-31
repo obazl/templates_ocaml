@@ -18,6 +18,8 @@ ocaml_test(
     visibility = ["//visibility:public"],
     timeout  = "short"
 )
+
+#############
 ocaml_module(
     name          = "ParserTest",
     struct        = "parserTest.ml",
@@ -27,12 +29,9 @@ ocaml_module(
     ]
 )
 
-#############################
-####  Aggregate Targets  ####
-
+##############
 ocaml_library(
     name     = "libMwe",
-    archived = True,
     manifest = [
         ":Ast",
         ":Lexer",
@@ -41,19 +40,9 @@ ocaml_library(
     ],
 )
 
-#############################
-####  Singleton Targets  ####
-
-LIBMWE_COMPILE_OPTS = [
-    "-w", "-39",
-    "-no-strict-sequence",
-    "-no-strict-formats",
-]
-
 ocaml_module(
     name          = "Ast",
     struct        = "ast.ml",
-    opts          = LIBMWE_COMPILE_OPTS,
 )
 
 # Since we're using an --external-tokens defn of token,
@@ -61,7 +50,6 @@ ocaml_module(
 ocaml_module(
     name          = "Lexer",
     struct        = "lexer.ml",
-    opts          = LIBMWE_COMPILE_OPTS,
     # open = [":Token"], # or put 'open Token' in lexer.mll
     deps          = [
         ":Parser" # :Token included in depgraph by transitivity
@@ -72,7 +60,6 @@ ocaml_module(
     name          = "Parser",
     struct        = "parser.ml",
     sig           = "parser.mli",
-    opts          = LIBMWE_COMPILE_OPTS + ["-w", "-28"],
     deps          = [
         ":Ast",
         ":Token",
@@ -83,7 +70,6 @@ ocaml_module(
 ocaml_module(
     name          = "ParserInterface",
     struct        = "parserInterface.ml",
-    opts          = LIBMWE_COMPILE_OPTS,
     deps          = [
         ":Lexer",
         ":Parser"
@@ -95,10 +81,6 @@ ocaml_module(
     struct        = "token.ml"
 )
 
-##############################
-########################
-####  File Generators  ####
-
 ##########
 ocamllex(
     name  = "lex_Lexer",
@@ -106,8 +88,7 @@ ocamllex(
     out   = "lexer.ml",
 )
 
-#######  emitting menhir ####
-##########
+#######
 menhir(
     name  = "menhir_Parser",
     outs  = ["parser.ml", "parser.mli"],

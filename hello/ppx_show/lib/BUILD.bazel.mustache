@@ -1,0 +1,18 @@
+load("@rules_ocaml//build:rules.bzl",
+     "ocaml_module", "ocaml_signature")
+
+ocaml_module(
+    name       = "Show",
+    ppx        = "//ppx:ppx.exe",
+    struct     = "show.ml",
+    sig        = ":Show_cmi",
+    # sig      = "show.mli"
+    # print    = "@rules_ppx//print:text!",
+    visibility = ["//test:__pkg__"],
+)
+
+ocaml_signature(
+    name       = "Show_cmi",
+    src        = "show.mli",
+    ppx        = "//ppx:ppx.exe",
+)
